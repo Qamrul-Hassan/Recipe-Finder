@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* Theme colors and fonts */
+:root {
+  --background: #fefefe;
+  --foreground: #111827;
+  --primary: #10b981;
+  --secondary: #3b82f6;
+  --card-bg: #ffffff;
+  --card-shadow: rgba(0,0,0,0.1);
+  --font-sans: 'Inter', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1f2937;
+    --foreground: #f3f4f6;
+    --card-bg: #374151;
+    --card-shadow: rgba(255,255,255,0.1);
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px var(--card-shadow);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 8px 20px var(--card-shadow);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.3);
+}
