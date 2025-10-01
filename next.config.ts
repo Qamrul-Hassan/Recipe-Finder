@@ -1,8 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
   images: {
-    domains: ['www.themealdb.com'], // ✅ allow external images from TheMealDB
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'www.themealdb.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.thecocktaildb.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
 }
 
