@@ -18,33 +18,21 @@ interface Recipe {
 }
 
 interface RecipePageProps {
-  params: Promise<{ id: string }> | { id: string }
+  params: { id: string }
 }
 
 export default function RecipeDetails({ params }: RecipePageProps) {
   const router = useRouter()
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [loading, setLoading] = useState(true)
-  const [id, setId] = useState<string>('')
-
-  // Unwrap params safely
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolved = 'then' in params ? await params : params
-      setId(resolved.id)
-    }
-    resolveParams()
-  }, [params])
 
   useEffect(() => {
-    if (!id) return
-
     const fetchRecipe = async () => {
       setLoading(true)
-      const resMeal = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`)
+      const resMeal = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${params.id}`)
       const mealData = await resMeal.json()
 
-      const resDrink = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=${id}`)
+      const resDrink = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=${params.id}`)
       const drinkData = await resDrink.json()
 
       setRecipe(mealData.meals?.[0] || drinkData.drinks?.[0] || null)
@@ -52,10 +40,15 @@ export default function RecipeDetails({ params }: RecipePageProps) {
     }
 
     fetchRecipe()
-  }, [id])
+  }, [params.id])
 
-  if (loading) return <p className="p-6 text-center text-gray-500 font-medium text-lg">Loading recipe...</p>
-  if (!recipe) return <p className="p-6 text-center text-red-500 font-medium text-lg">Recipe not found</p>
+  if (loading) {
+    return <p className="p-6 text-center text-gray-500 font-medium text-lg">Loading recipe...</p>
+  }
+
+  if (!recipe) {
+    return <p className="p-6 text-center text-red-500 font-medium text-lg">Recipe not found</p>
+  }
 
   const ingredients = Object.keys(recipe)
     .filter((k) => k.startsWith('strIngredient') && recipe[k])
@@ -115,7 +108,7 @@ export default function RecipeDetails({ params }: RecipePageProps) {
           rel="noopener noreferrer"
           className="youtube-btn bg-gradient-to-r from-red-200 via-red-600 to-red-100
                      bg-[length:200%_200%] animate-gradient-shift
-                     hover:brightness-110"
+                     hover:brightness-110 px-6 py-3 rounded-xl text-white font-bold shadow-md block text-center"
         >
           Watch on YouTube
         </a>
