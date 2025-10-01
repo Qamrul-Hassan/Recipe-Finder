@@ -1,9 +1,9 @@
 'use client'
 
-import Image from 'next/image'
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 interface Recipe {
   idMeal?: string
@@ -17,32 +17,34 @@ interface Recipe {
   [key: string]: string | undefined
 }
 
-// Correct typing: params is an object, not a Promise
 interface RecipePageProps {
-  params: { id: string }
+  params: Promise<{ id: string }> | { id: string }
 }
 
 export default function RecipeDetails({ params }: RecipePageProps) {
   const router = useRouter()
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [loading, setLoading] = useState(true)
+  const [id, setId] = useState<string>('')
 
-  const id = params.id // Safe to access directly
+  // Unwrap params safely
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolved = 'then' in params ? await params : params
+      setId(resolved.id)
+    }
+    resolveParams()
+  }, [params])
 
   useEffect(() => {
     if (!id) return
 
     const fetchRecipe = async () => {
       setLoading(true)
-
-      const resMeal = await fetch(
-        `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`
-      )
+      const resMeal = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`)
       const mealData = await resMeal.json()
 
-      const resDrink = await fetch(
-        `https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=${id}`
-      )
+      const resDrink = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=${id}`)
       const drinkData = await resDrink.json()
 
       setRecipe(mealData.meals?.[0] || drinkData.drinks?.[0] || null)
@@ -52,10 +54,8 @@ export default function RecipeDetails({ params }: RecipePageProps) {
     fetchRecipe()
   }, [id])
 
-  if (loading)
-    return <p className="p-6 text-center text-gray-500 font-medium text-lg">Loading recipe...</p>
-  if (!recipe)
-    return <p className="p-6 text-center text-red-500 font-medium text-lg">Recipe not found</p>
+  if (loading) return <p className="p-6 text-center text-gray-500 font-medium text-lg">Loading recipe...</p>
+  if (!recipe) return <p className="p-6 text-center text-red-500 font-medium text-lg">Recipe not found</p>
 
   const ingredients = Object.keys(recipe)
     .filter((k) => k.startsWith('strIngredient') && recipe[k])
@@ -63,7 +63,6 @@ export default function RecipeDetails({ params }: RecipePageProps) {
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-gradient-to-b from-green-50 to-white min-h-screen font-sans">
-      {/* Back Button */}
       <button
         onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))}
         className="mb-6 inline-flex items-center gap-3 text-white font-extrabold text-lg px-11 py-2 rounded-3xl shadow-lg shadow-green-300/50 
@@ -75,11 +74,12 @@ export default function RecipeDetails({ params }: RecipePageProps) {
         <span className="text-xl">Back</span>
       </button>
 
-      <h1 className="text-4xl font-bold mb-6 text-gray-800">
-        {recipe.strMeal || recipe.strDrink}
-      </h1>
+      <h1 className="text-4xl font-bold mb-6 text-gray-800">{recipe.strMeal || recipe.strDrink}</h1>
 
-      <motion.div whileHover={{ scale: 1.03, y: -5 }} className="relative w-full h-96 mb-6 rounded-xl overflow-hidden shadow-lg">
+      <motion.div
+        whileHover={{ scale: 1.03, y: -5 }}
+        className="relative w-full h-96 mb-6 rounded-xl overflow-hidden shadow-lg"
+      >
         <Image
           src={recipe.strMealThumb || recipe.strDrinkThumb || '/fallback.png'}
           alt={recipe.strMeal || recipe.strDrink || 'Recipe Image'}
@@ -89,9 +89,10 @@ export default function RecipeDetails({ params }: RecipePageProps) {
       </motion.div>
 
       {ingredients.length > 0 && (
-        <div className="relative rounded-2xl shadow-md p-6 mb-6 transition-transform hover:-translate-y-1 bg-lime-100">
-          <h2 className="text-2xl font-semibold mb-3 text-gray-700">Ingredients:</h2>
-          <ul className="list-disc list-inside space-y-1 text-gray-600">
+        <div className="relative rounded-2xl shadow-md p-6 mb-6 transition-transform hover:-translate-y-1">
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-lime-100 via-lime-200 to-lime-100 opacity-20 pointer-events-none"></div>
+          <h2 className="text-2xl font-semibold mb-3 text-gray-700 relative z-10">Ingredients:</h2>
+          <ul className="list-disc list-inside space-y-1 text-gray-600 relative z-10">
             {ingredients.map((ing, idx) => (
               <li key={idx}>{ing}</li>
             ))}
@@ -100,9 +101,10 @@ export default function RecipeDetails({ params }: RecipePageProps) {
       )}
 
       {recipe.strInstructions && (
-        <div className="relative rounded-2xl shadow-md p-6 mb-6 transition-transform hover:-translate-y-1 bg-lime-50">
-          <h2 className="text-2xl font-semibold mb-3 text-gray-700">Instructions:</h2>
-          <p className="text-gray-600 whitespace-pre-line">{recipe.strInstructions}</p>
+        <div className="relative rounded-2xl shadow-md p-6 mb-6 transition-transform hover:-translate-y-1">
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-green-400 via-green-50 to-green-300 opacity-20 pointer-events-none"></div>
+          <h2 className="text-2xl font-semibold mb-3 text-gray-700 relative z-10">Instructions:</h2>
+          <p className="text-gray-600 whitespace-pre-line relative z-10">{recipe.strInstructions}</p>
         </div>
       )}
 
@@ -111,7 +113,9 @@ export default function RecipeDetails({ params }: RecipePageProps) {
           href={recipe.strYoutube}
           target="_blank"
           rel="noopener noreferrer"
-          className="youtube-btn bg-gradient-to-r from-red-200 via-red-600 to-red-100 hover:brightness-110"
+          className="youtube-btn bg-gradient-to-r from-red-200 via-red-600 to-red-100
+                     bg-[length:200%_200%] animate-gradient-shift
+                     hover:brightness-110"
         >
           Watch on YouTube
         </a>
