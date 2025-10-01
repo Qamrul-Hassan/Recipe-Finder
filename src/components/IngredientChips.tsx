@@ -1,11 +1,11 @@
 'use client'
 
 interface Props {
-  ingredients: string[]
+  ingredients?: string[]
   setIngredients: (arr: string[]) => void
 }
 
-export const IngredientChips = ({ ingredients, setIngredients }: Props) => {
+export const IngredientChips = ({ ingredients = [], setIngredients }: Props) => {
   const remove = (item: string) => setIngredients(ingredients.filter((i) => i !== item))
 
   return (

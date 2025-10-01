@@ -3,13 +3,14 @@
 interface HeroProps {
   query: string
   setQuery: (q: string) => void
+  onKeyPress?: (e: React.KeyboardEvent<HTMLInputElement>) => void
 }
 
-export const Hero = ({ query, setQuery }: HeroProps) => {
+export const Hero = ({ query, setQuery, onKeyPress }: HeroProps) => {
   return (
     <section
       className="relative w-full h-96 bg-cover bg-center rounded-xl mb-6"
-      style={{ backgroundImage: `url('/Rec-1.jpg')` }} // Directly use local image
+      style={{ backgroundImage: `url('/Rec-1.jpg')` }}
     >
       <div className="absolute inset-0 bg-black/50 rounded-xl"></div>
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
@@ -24,7 +25,8 @@ export const Hero = ({ query, setQuery }: HeroProps) => {
           placeholder="Try 'chicken', 'pasta', or 'salad'..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-         className="w-72 sm:w-96 p-4 rounded-full text-lg shadow-2xl bg-gray-900/80 backdrop-blur-sm border border-gray-600 placeholder-gray-400 text-white text-center focus:bg-gray-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
+          onKeyDown={onKeyPress}
+          className="w-72 sm:w-96 p-4 rounded-full text-lg shadow-2xl bg-gray-900/80 backdrop-blur-sm border border-gray-600 placeholder-gray-400 text-white text-center focus:bg-gray-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
         />
       </div>
     </section>

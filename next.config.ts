@@ -1,16 +1,9 @@
-import type { NextConfig } from 'next'
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'img.spoonacular.com',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    domains: ['www.themealdb.com'], // ✅ allow external images from TheMealDB
   },
 }
 
-export default nextConfig
+module.exports = nextConfig

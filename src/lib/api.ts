@@ -1,52 +1,42 @@
+// src/lib/api.ts
+
 export interface Recipe {
-  id: string
-  title: string
-  image: string
+  idMeal: string
+  strMeal: string
+  strCategory: string
+  strArea: string
+  strInstructions: string
+  strMealThumb: string
+  strYoutube: string
+  [key: string]: string // for strIngredient1..20, strMeasure1..20
 }
 
-interface SpoonacularRecipe {
-  id: number
-  title: string
-  image?: string
-}
-
-interface APIResponse {
-  results?: SpoonacularRecipe[]
-}
-
-export async function fetchRecipes(query: string): Promise<Recipe[]> {
-  const BASE_URL = 'https://api.spoonacular.com/recipes/complexSearch'
-  const API_KEY = '6a6b64b883fd4968beb466488057a5b5'
-
+/**
+ * Fetch recipes from TheMealDB
+ * @param ingredients string array, for search pass [keyword]
+ */
+export const fetchRecipes = async (ingredients: string[]): Promise<Recipe[]> => {
   try {
-    const res = await fetch(
-      `${BASE_URL}?query=${query}&number=12&type=main+course&apiKey=${API_KEY}`
-    )
-    const data: APIResponse = await res.json()
+    const apiKey = process.env.NEXT_PUBLIC_MEALDB_API_KEY || '1'
+    let url = ''
 
-    if (!data.results || !Array.isArray(data.results) || data.results.length === 0) {
-      // fallback recipes if API returns nothing
-      return [
-        { id: '1', title: 'Chicken Curry', image: '/fallback.png' },
-        { id: '2', title: 'Pasta Salad', image: '/fallback.png' },
-        { id: '3', title: 'Grilled Salmon', image: '/fallback.png' },
-        { id: '4', title: 'Vegan Bowl', image: '/fallback.png' },
-      ]
+    if (!ingredients || ingredients.length === 0 || ingredients[0] === '') {
+      // default popular recipes
+      url = `https://www.themealdb.com/api/json/v1/${apiKey}/search.php?s=`
+    } else {
+      // search by keyword (any recipe name)
+      const query = ingredients[0]
+      url = `https://www.themealdb.com/api/json/v1/${apiKey}/search.php?s=${query}`
     }
 
-    return data.results.map((r: SpoonacularRecipe) => ({
-      id: r.id.toString(),
-      title: r.title,
-      image: r.image || '/fallback.png',
-    }))
+    const res = await fetch(url)
+    const data: { meals: Recipe[] | null } = await res.json()
+
+    if (!data.meals) return []
+
+    return data.meals
   } catch (err) {
     console.error('Error fetching recipes:', err)
-    // return fallback if fetch fails
-    return [
-      { id: '1', title: 'Chicken Curry', image: '/fallback.png' },
-      { id: '2', title: 'Pasta Salad', image: '/fallback.png' },
-      { id: '3', title: 'Grilled Salmon', image: '/fallback.png' },
-      { id: '4', title: 'Vegan Bowl', image: '/fallback.png' },
-    ]
+    return []
   }
 }
