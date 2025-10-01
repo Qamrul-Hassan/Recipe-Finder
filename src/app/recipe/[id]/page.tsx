@@ -4,7 +4,6 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import * as React from 'react'
 
 interface Recipe {
   idMeal?: string
@@ -18,14 +17,17 @@ interface Recipe {
   [key: string]: string | undefined
 }
 
-export default function RecipeDetails({ params }: { params: Promise<{ id: string }> }) {
+// Correct typing: params is an object, not a Promise
+interface RecipePageProps {
+  params: { id: string }
+}
+
+export default function RecipeDetails({ params }: RecipePageProps) {
   const router = useRouter()
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Unwrap params using React.use()
-  const resolvedParams = React.use(params)
-  const id = resolvedParams.id
+  const id = params.id // Safe to access directly
 
   useEffect(() => {
     if (!id) return
@@ -63,13 +65,13 @@ export default function RecipeDetails({ params }: { params: Promise<{ id: string
     <div className="max-w-5xl mx-auto p-6 bg-gradient-to-b from-green-50 to-white min-h-screen font-sans">
       {/* Back Button */}
       <button
-        onClick={() => window.history.length > 1 ? router.back() : router.push('/')}
+        onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))}
         className="mb-6 inline-flex items-center gap-3 text-white font-extrabold text-lg px-11 py-2 rounded-3xl shadow-lg shadow-green-300/50 
                    bg-gradient-to-r from-green-300 via-green-400 to-green-300
                    bg-[length:200%_200%] animate-gradient-shift
                    transition-transform duration-300 transform hover:-translate-y-1"
       >
-        <span className="inline-block animate-bounce-left text-3xl">←</span> 
+        <span className="inline-block animate-bounce-left text-3xl">←</span>
         <span className="text-xl">Back</span>
       </button>
 
