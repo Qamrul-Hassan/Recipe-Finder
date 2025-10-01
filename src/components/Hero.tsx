@@ -14,10 +14,10 @@ export const Hero = ({ query, setQuery, onKeyPress }: HeroProps) => {
     >
       <div className="absolute inset-0 bg-black/50 rounded-xl"></div>
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
-        <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
-          All Your Food. One Place.
+        <h1 className="text-4xl sm:text-5xl font-bold text-lime-200 mb-4">
+          Find Your Favorite Recipes
         </h1>
-        <p className="text-lg text-gray-200 mb-6">
+        <p className="text-lg text-lime-50 mb-6">
           Save, plan, and explore recipes in seconds.
         </p>
         <input

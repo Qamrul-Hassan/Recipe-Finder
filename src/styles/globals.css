@@ -1,25 +1,33 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Raleway:wght@400;600;700&display=swap');
 
-/* Theme colors and fonts */
+/* -----------------------------
+   Theme Colors & Fonts
+----------------------------- */
 :root {
-  --background: #fefefe;
-  --foreground: #111827;
-  --primary: #10b981;
-  --secondary: #3b82f6;
-  --card-bg: #ffffff;
-  --card-shadow: rgba(0,0,0,0.1);
+  --background: #f0fdf4; /* light lime-50 */
+  --foreground: #111827; /* gray-900 */
+  --primary: #10b981; /* emerald-500 */
+  --secondary: #3b82f6; /* blue-500 */
+  --accent: #f59e0b; /* amber-500 highlights */
+  --card-bg: #ffffff; 
+  --card-shadow: rgba(0,0,0,0.08);
   --font-sans: 'Inter', sans-serif;
+  --font-heading: 'Raleway', sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1f2937;
+    --background: #111827;
     --foreground: #f3f4f6;
-    --card-bg: #374151;
-    --card-shadow: rgba(255,255,255,0.1);
+    --card-bg: #1f2937;
+    --card-shadow: rgba(255,255,255,0.08);
   }
 }
 
+/* -----------------------------
+   Base Styles
+----------------------------- */
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -27,22 +35,128 @@ body {
   margin: 0;
   padding: 0;
   line-height: 1.6;
+  transition: background-color 0.3s, color 0.3s;
 }
 
+ h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--foreground);
+}
+
+/* -----------------------------
+   Cards
+----------------------------- */
 .card {
-  background-color: var(--card-bg);
-  border-radius: 1rem;
-  box-shadow: 0 4px 10px var(--card-shadow);
-  transition: transform 0.3s, box-shadow 0.3s;
+  background-color: #f7fee7; /* Tailwind lime-50, very light */
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 12px var(--card-shadow);
+  padding: 1.5rem;
+  transition: transform 0.4s ease, box-shadow 0.4s ease, background-color 0.3s ease;
 }
 
 .card:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 8px 20px var(--card-shadow);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15), 0 0 15px rgba(16, 185, 129, 0.1);
+  background-color: #fefdf6; /* subtle highlight on hover */
 }
 
+/* -----------------------------
+   Inputs
+----------------------------- */
 input:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(16,185,129,0.3);
+}
+
+/* -----------------------------
+   Buttons
+----------------------------- */
+button {
+  font-family: var(--font-heading);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* -----------------------------
+   Links
+----------------------------- */
+a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: var(--secondary);
+}
+
+/* -----------------------------
+   Bounce Animation
+----------------------------- */
+@keyframes bounce-left {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-6px); }
+}
+
+.animate-bounce-left {
+  display: inline-block;
+  animation: bounce-left 0.6s infinite;
+}
+
+/* -----------------------------
+   Headings & Highlight
+----------------------------- */
+h2 {
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+/* -----------------------------
+   Ingredient List
+----------------------------- */
+ul.list-disc li {
+  background-color: var(--primary);
+  color: #fff;
+  display: inline-block;
+  margin: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+}
+
+/* -----------------------------
+   YouTube Button
+----------------------------- */
+.youtube-btn {
+  background-color: #dc2626; /* Tailwind bg-red-600 */
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  display: inline-block;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+
+.youtube-btn:hover {
+  background-color: #b91c1c; /* Tailwind bg-red-700 */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-shift {
+  animation: gradient-shift 4s ease infinite;
 }
