@@ -83,7 +83,7 @@ export default function RecipeDetails({ id }: RecipeDetailsProps) {
 
       {ingredients.length > 0 && (
         <div className="relative rounded-2xl shadow-md p-6 mb-6 transition-transform hover:-translate-y-1">
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-lime-100 via-lime-400 to-lime-100 opacity-20 pointer-events-none"></div>
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-lime-400 via-lime-200 to-lime-300 opacity-20 pointer-events-none"></div>
           <h2 className="text-2xl font-semibold mb-3 text-gray-700 relative z-10">Ingredients:</h2>
           <ul className="list-disc list-inside space-y-1 text-gray-600 relative z-10">
             {ingredients.map((ing, idx) => (
