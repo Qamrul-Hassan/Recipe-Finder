@@ -5,7 +5,7 @@
    Theme Colors & Fonts
 ----------------------------- */
 :root {
-  --background: #d9f0d3; /* light lime-50 */
+  --background: #d9f0d3; /* light lime-200 */
   --foreground: #111827; /* gray-900 */
   --primary: #10b981; /* emerald-500 */
   --secondary: #3b82f6; /* blue-500 */
@@ -47,7 +47,7 @@ body {
    Cards
 ----------------------------- */
 .card {
-  background-color: #f7fee7; /* Tailwind lime-50, very light */
+  background-color: #f0fdf4; /* Tailwind lime-50, very light */
   border-radius: 1.25rem;
   box-shadow: 0 4px 12px var(--card-shadow);
   padding: 1.5rem;
