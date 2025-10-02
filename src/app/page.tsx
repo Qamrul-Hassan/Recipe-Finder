@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Hero } from '@/components/Hero'
-import { RecipeGrid } from '@/components/RecipeGrid'
+import RecipeGrid from '@/components/RecipeGrid'
 import { fetchRecipes, Recipe } from '@/lib/api'
 
 export default function Home() {
@@ -30,11 +30,12 @@ export default function Home() {
     fetchData()
   }, [query])
 
-  // Fetch popular recipes on initial load
+  // Fetch popular recipes & drinks on initial load
   useEffect(() => {
     const fetchPopular = async () => {
       setLoading(true)
       try {
+        // For empty keyword, fetch top meals and drinks
         const data = await fetchRecipes([''])
         setRecipes(data)
       } catch (err) {

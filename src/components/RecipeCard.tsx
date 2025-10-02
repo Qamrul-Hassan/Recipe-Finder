@@ -23,6 +23,10 @@ const RecipeCard = ({ recipe }: Props) => {
     return ingredients
   }
 
+  const title = recipe.strMeal || recipe.strDrink || 'Untitled'
+  const imgSrc = recipe.strMealThumb || recipe.strDrinkThumb || '/fallback.png'
+  const instructions = recipe.strInstructions || ''
+
   return (
     <>
       <div
@@ -31,13 +35,13 @@ const RecipeCard = ({ recipe }: Props) => {
       >
         <div className="relative w-full h-48 mb-4">
           <Image
-            src={recipe.strMealThumb || '/fallback.png'}
-            alt={recipe.strMeal}
+            src={imgSrc}
+            alt={title}
             fill
             className="rounded-lg object-cover"
           />
         </div>
-        <h3 className="font-bold text-lg">{recipe.strMeal}</h3>
+        <h3 className="font-bold text-lg">{title}</h3>
       </div>
 
       {/* Modal */}
@@ -51,15 +55,15 @@ const RecipeCard = ({ recipe }: Props) => {
               ×
             </button>
             <Image
-              src={recipe.strMealThumb || '/fallback.png'}
-              alt={recipe.strMeal}
+              src={imgSrc}
+              alt={title}
               width={600}
               height={400}
               className="w-full h-64 object-cover rounded-t-xl"
             />
             <div className="p-6 text-white">
-              <h2 className="text-2xl font-bold mb-2">{recipe.strMeal}</h2>
-              <p className="mb-4 text-gray-300">{recipe.strInstructions}</p>
+              <h2 className="text-2xl font-bold mb-2">{title}</h2>
+              <p className="mb-4 text-gray-300">{instructions}</p>
 
               <h3 className="font-semibold mb-2">Ingredients:</h3>
               <ul className="mb-4 list-disc list-inside text-gray-200">

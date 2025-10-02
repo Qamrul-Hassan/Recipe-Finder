@@ -1,41 +1,35 @@
-
 // src/lib/api.ts
-
 export interface Recipe {
-  idMeal: string
-  strMeal: string
-  strCategory: string
-  strArea: string
-  strInstructions: string
-  strMealThumb: string
-  strYoutube: string
-  [key: string]: string // for strIngredient1..20, strMeasure1..20
+  idMeal?: string
+  idDrink?: string
+  strMeal?: string
+  strDrink?: string
+  strCategory?: string
+  strArea?: string
+  strInstructions?: string
+  strMealThumb?: string
+  strDrinkThumb?: string
+  strYoutube?: string
+  [key: string]: string | undefined
 }
 
-/**
- * Fetch recipes from TheMealDB
- * @param ingredients string array, for search pass [keyword]
- */
-export const fetchRecipes = async (ingredients: string[]): Promise<Recipe[]> => {
+export const fetchRecipes = async (keywords: string[]): Promise<Recipe[]> => {
   try {
-    const apiKey = process.env.NEXT_PUBLIC_MEALDB_API_KEY || '1'
-    let url = ''
+    const keyword = keywords?.[0] || ''
+    const mealUrl = `https://www.themealdb.com/api/json/v1/1/search.php?s=${keyword}`
+    const drinkUrl = `https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${keyword}`
 
-    if (!ingredients || ingredients.length === 0 || ingredients[0] === '') {
-      // default popular recipes
-      url = `https://www.themealdb.com/api/json/v1/${apiKey}/search.php?s=`
-    } else {
-      // search by keyword (any recipe name)
-      const query = ingredients[0]
-      url = `https://www.themealdb.com/api/json/v1/${apiKey}/search.php?s=${query}`
-    }
+    const [mealRes, drinkRes] = await Promise.all([fetch(mealUrl), fetch(drinkUrl)])
+    const mealData = await mealRes.json()
+    const drinkData = await drinkRes.json()
 
-    const res = await fetch(url)
-    const data: { meals: Recipe[] | null } = await res.json()
+    const meals: Recipe[] = mealData.meals || []
+    const drinks: Recipe[] = drinkData.drinks || []
 
-    if (!data.meals) return []
+    // If drinks is null, we set it as empty array to avoid errors
+    const validDrinks: Recipe[] = Array.isArray(drinks) ? drinks : []
 
-    return data.meals
+    return [...meals, ...validDrinks]
   } catch (err) {
     console.error('Error fetching recipes:', err)
     return []
