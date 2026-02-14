@@ -1,4 +1,5 @@
-import '@/styles/globals.css'
+﻿import '@/styles/globals.css'
+import AppShell from '@/components/AppShell'
 
 export default function RootLayout({
   children,
@@ -7,7 +8,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body suppressHydrationWarning>
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   )
 }
+

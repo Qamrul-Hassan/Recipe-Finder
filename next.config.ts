@@ -1,5 +1,7 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import path from 'path'
+
+const nextConfig: import('next').NextConfig = {
+  outputFileTracingRoot: path.join(__dirname),
   images: {
     remotePatterns: [
       {
@@ -18,4 +20,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+export default nextConfig

@@ -1,6 +1,7 @@
-'use client'
+﻿'use client'
 
-import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import { useEffect, useState } from 'react'
 
 interface HeroProps {
   query: string
@@ -8,54 +9,84 @@ interface HeroProps {
   onKeyPress?: (e: React.KeyboardEvent<HTMLInputElement>) => void
 }
 
-// Move placeholders outside the component to avoid ESLint warnings
 const placeholders = [
-  "margarita",
-  "arrabiata",
-  "chicken",
-  "salad",
-  "mojito",
-  "pasta",
-  "pancakes",
-  "bloody mary",
+  'margarita',
+  'arrabiata',
+  'chicken',
+  'salad',
+  'mojito',
+  'pasta',
+  'pancakes',
+  'bloody mary',
 ]
+
+const banners = ['/banner-3.png', '/banner-2.png', '/banner-1.jpg', '/Rec-1.jpg']
 
 export const Hero = ({ query, setQuery, onKeyPress }: HeroProps) => {
   const [placeholder, setPlaceholder] = useState('')
+  const [bannerIndex, setBannerIndex] = useState(0)
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * placeholders.length)
     setPlaceholder(`Try '${placeholders[randomIndex]}'...`)
-  }, []) // no dependency warning
+  }, [])
 
   return (
     <section
-      className="relative w-full h-96 bg-cover bg-center rounded-xl mb-6"
-      style={{ backgroundImage: `url('/Rec-1.jpg')` }}
+      className="hero-section relative mb-8 min-h-[23rem] overflow-hidden rounded-3xl bg-[rgba(18,28,15,0.55)] sm:min-h-[27rem]"
+      aria-labelledby="hero-heading"
     >
-      <div className="absolute inset-0 bg-black/50 rounded-xl"></div>
+      <Image
+        src={banners[bannerIndex]}
+        alt="Recipe banner"
+        fill
+        priority
+        sizes="(max-width: 1280px) 100vw, 1280px"
+        className="object-cover object-[center_38%]"
+        onError={() => setBannerIndex((current) => Math.min(current + 1, banners.length - 1))}
+      />
 
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
-        <h1 className="text-4xl sm:text-5xl font-bold text-lime-200 mb-4">
-          Find Your Favorite Recipes
-        </h1>
-        <p className="text-lg text-lime-50 mb-6 max-w-xl">
-          Search meals 🍽 or cocktails 🍹 in seconds.
-        </p>
+      <div className="absolute inset-0 hero-overlay"></div>
 
-        <input
-          type="text"
-          placeholder={placeholder || "Search for recipes..."}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={onKeyPress}
-          className="w-72 sm:w-96 p-4 rounded-full text-lg shadow-2xl 
-                     bg-gray-900/80 backdrop-blur-sm border border-gray-600 
-                     placeholder-gray-400 text-white text-center 
-                     focus:bg-gray-800 focus:border-green-400 
-                     focus:ring-2 focus:ring-green-400/50 
-                     transition-all duration-300"
-        />
+      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 py-10 text-center sm:px-8">
+        <div className="hero-content-shell">
+          <p className="hero-kicker mb-3">Fresh Daily Picks</p>
+          <h1
+            id="hero-heading"
+            className="hero-title mb-4 max-w-4xl text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
+          >
+            Find Your Favorite Recipes
+          </h1>
+          <p
+            className="mb-8 max-w-2xl text-base font-semibold text-[var(--hero-subtext)] drop-shadow-[0_3px_12px_rgba(0,0,0,0.56)] sm:text-lg"
+            style={{ color: '#f3f9e4' }}
+          >
+            Search meals and cocktails in seconds with a brighter, bolder cooking experience.
+          </p>
+        </div>
+
+        <form
+          className="hero-search-row flex w-full max-w-3xl flex-col items-center gap-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            setQuery(query.trim())
+          }}
+          role="search"
+          aria-label="Search recipes"
+        >
+          <label htmlFor="recipe-search" className="sr-only">
+            Search recipes
+          </label>
+          <input
+            id="recipe-search"
+            type="text"
+            placeholder={placeholder || 'Search for recipes...'}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={onKeyPress}
+            className="hero-search-input w-full rounded-2xl border px-5 py-4 text-center text-base shadow-lg transition-all duration-300 sm:text-lg"
+          />
+        </form>
       </div>
     </section>
   )

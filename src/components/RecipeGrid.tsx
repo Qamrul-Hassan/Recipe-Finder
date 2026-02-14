@@ -1,47 +1,100 @@
-// src/components/RecipeGrid.tsx
-'use client'
+﻿'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Recipe } from '@/lib/api'
+import { useFavorites } from '@/context/FavoritesContext'
+import { getRecipeCategory, getRecipeId, getRecipeImage, getRecipeTitle } from '@/lib/recipe'
 
 interface RecipeGridProps {
   recipes: Recipe[]
+  allowRemove?: boolean
 }
 
-const RecipeGrid = ({ recipes }: RecipeGridProps) => {
+const RecipeGrid = ({ recipes, allowRemove = false }: RecipeGridProps) => {
+  const reduceMotion = useReducedMotion()
+  const { isFavorite, toggleFavorite, removeFavorite } = useFavorites()
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {recipes.map((recipe) => {
-        const id = recipe.idMeal || recipe.idDrink
-        const title = recipe.strMeal || recipe.strDrink || 'Untitled'
-        const imgSrc = recipe.strMealThumb || recipe.strDrinkThumb || '/fallback.png'
-        const category = recipe.strCategory || (recipe.idDrink ? 'Drink' : 'Meal')
+    <section aria-label="Recipe results">
+      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {recipes.map((recipe) => {
+          const id = getRecipeId(recipe)
+          if (!id) return null
 
-        if (!id) return null // skip if no id
+          const title = getRecipeTitle(recipe)
+          const imgSrc = getRecipeImage(recipe)
+          const category = getRecipeCategory(recipe)
+          const favorite = isFavorite(id)
 
-        return (
-          <motion.div
-            key={id}
-            className="card"
-            whileHover={{ scale: 1.05, y: -5 }}
-            transition={{ type: 'spring', stiffness: 150, damping: 20 }}
-          >
-            <Link href={`/recipe/${id}`}>
-              <div className="relative w-full h-48">
-                <Image src={imgSrc} alt={title} fill className="object-cover" />
+          return (
+            <motion.li
+              key={id}
+              className="card recipe-card group relative"
+              initial={false}
+              whileHover={reduceMotion ? {} : { y: -6, scale: 1.02 }}
+              transition={{ type: 'spring', stiffness: 150, damping: 20 }}
+            >
+              <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+                  onClick={() => toggleFavorite(recipe)}
+                  className={`grid h-10 w-10 place-items-center rounded-full border shadow-md transition ${
+                    favorite
+                      ? 'border-[var(--primary)] bg-[var(--primary)] text-[var(--surface-strong)]'
+                      : 'border-[var(--surface-border)] bg-[var(--surface-strong)] text-[var(--foreground)] hover:bg-[var(--secondary)]'
+                  }`}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5"
+                    fill={favorite ? 'currentColor' : 'none'}
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M20.8 8.5c0 5.2-8.8 10.9-8.8 10.9S3.2 13.7 3.2 8.5c0-2.6 2-4.6 4.5-4.6 1.6 0 3.1.8 4 2.1.9-1.3 2.4-2.1 4-2.1 2.6 0 4.6 2 4.6 4.6Z" />
+                  </svg>
+                </button>
+
+                {allowRemove && (
+                  <button
+                    type="button"
+                    aria-label="Remove recipe from this list"
+                    onClick={() => removeFavorite(id)}
+                    className="grid h-10 w-10 place-items-center rounded-full border border-[var(--surface-border)] bg-[var(--surface-strong)] text-xl font-bold text-[var(--foreground)] shadow-sm transition hover:bg-[var(--accent)]"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
-              <div className="p-4 text-gray-900 dark:text-gray-100">
-                <h2 className="text-lg font-bold">{title}</h2>
-                {category && <p className="text-sm text-gray-500">{category}</p>}
-              </div>
-            </Link>
-          </motion.div>
-        )
-      })}
-    </div>
+
+              <Link href={`/recipe/${id}`} className="block">
+                <div className="relative h-48 w-full overflow-hidden rounded-2xl">
+                  <Image
+                    src={imgSrc}
+                    alt={title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
+                  />
+                </div>
+                <div className="px-1 pb-1 pt-4">
+                  <h2 className="text-lg font-extrabold text-[var(--primary)]">{title}</h2>
+                  {category && <p className="text-sm font-semibold text-[var(--muted)]">{category}</p>}
+                </div>
+              </Link>
+            </motion.li>
+          )
+        })}
+      </ul>
+    </section>
   )
 }
 
 export default RecipeGrid
+

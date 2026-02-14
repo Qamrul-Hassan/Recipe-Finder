@@ -1,41 +1,91 @@
-'use client'
+﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Hero } from '@/components/Hero'
 import RecipeGrid from '@/components/RecipeGrid'
 import { fetchRecipes, Recipe } from '@/lib/api'
 
-export default function Home() {
+function HomeContent() {
+  const searchParams = useSearchParams()
+  const selectedQuery = searchParams.get('q')?.trim() || ''
+  const selectedRegions = useMemo(
+    () =>
+      searchParams
+        .getAll('region')
+        .flatMap((value) => value.split(','))
+        .map((value) => value.trim())
+        .filter(Boolean),
+    [searchParams],
+  )
+  const selectedRegionsKey = selectedRegions.join('|')
+  const hasSelectedRegions = selectedRegions.length > 0
   const [query, setQuery] = useState<string>('')
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState<boolean>(false)
 
-  // Fetch recipes whenever the query changes
   useEffect(() => {
-    if (!query.trim()) return
+    if (selectedQuery) {
+      setQuery(selectedQuery)
+      return
+    }
+    setQuery('')
+  }, [selectedQuery])
 
-    const fetchData = async () => {
+  useEffect(() => {
+    const trimmedQuery = query.trim()
+    if (!trimmedQuery) return
+
+    let isStale = false
+    const timer = setTimeout(async () => {
       setLoading(true)
       try {
-        const data = await fetchRecipes([query])
-        setRecipes(data)
+        const data = await fetchRecipes([trimmedQuery])
+        if (!isStale) setRecipes(data)
       } catch (err) {
         console.error('Error fetching recipes:', err)
-        setRecipes([])
+        if (!isStale) setRecipes([])
       } finally {
-        setLoading(false)
+        if (!isStale) setLoading(false)
+      }
+    }, 350)
+
+    return () => {
+      isStale = true
+      clearTimeout(timer)
+    }
+  }, [query])
+
+  useEffect(() => {
+    if (selectedQuery || !hasSelectedRegions) return
+
+    let isStale = false
+    const fetchByRegion = async () => {
+      setLoading(true)
+      try {
+        const data = await fetchRecipes([''], { regions: selectedRegions })
+        if (!isStale) setRecipes(data)
+      } catch (err) {
+        console.error('Error fetching regional recipes:', err)
+        if (!isStale) setRecipes([])
+      } finally {
+        if (!isStale) setLoading(false)
       }
     }
 
-    fetchData()
-  }, [query])
+    fetchByRegion()
 
-  // Fetch popular recipes & drinks on initial load
+    return () => {
+      isStale = true
+    }
+  }, [selectedQuery, hasSelectedRegions, selectedRegions, selectedRegionsKey])
+
   useEffect(() => {
+    if (selectedQuery || hasSelectedRegions) return
+
     const fetchPopular = async () => {
       setLoading(true)
       try {
-        // For empty keyword, fetch top meals and drinks
         const data = await fetchRecipes([''])
         setRecipes(data)
       } catch (err) {
@@ -47,21 +97,35 @@ export default function Home() {
     }
 
     fetchPopular()
-  }, [])
+  }, [selectedQuery, hasSelectedRegions])
 
   return (
-    <main className="max-w-7xl mx-auto p-4">
+    <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8">
       <Hero query={query} setQuery={setQuery} />
 
-      {loading && (
-        <p className="text-center text-gray-600 mt-6 font-medium">Loading recipes...</p>
+      {loading && recipes.length === 0 && (
+        <p className="text-center text-[var(--muted)] mt-6 font-semibold">Loading recipes...</p>
       )}
 
       {!loading && recipes.length === 0 && (
-        <p className="text-center text-gray-600 mt-6 font-medium">No recipes found.</p>
+        <p className="text-center text-[var(--muted)] mt-6 font-semibold">No recipes found.</p>
       )}
 
       <RecipeGrid recipes={recipes} />
     </main>
+  )
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8">
+          <p className="text-center text-[var(--muted)] mt-6 font-semibold">Loading recipes...</p>
+        </main>
+      }
+    >
+      <HomeContent />
+    </Suspense>
   )
 }
