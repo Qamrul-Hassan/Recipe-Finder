@@ -1,51 +1,75 @@
+﻿# Recipe Finder
 
-# 🍴 Recipe Finder
+Recipe Finder is a modern Next.js app for discovering meals and drinks from public recipe APIs.
+It includes global cuisine filters, favorites, detailed recipe pages, and a responsive premium UI.
 
-A modern web app to discover meals and drinks using TheMealDB and TheCocktailDB APIs.
-Built with Next.js 15, TypeScript, Tailwind CSS 4, and enhanced with smooth Framer Motion animations.
+## Features
+- Search meals and drinks by keyword
+- Browse quick categories (Breakfast, Pasta, Seafood, Drinks, Vegan, Dessert, Smoothie, Cocktail)
+- Explore by global regions and country spotlights
+- Save and manage favorites on a dedicated `/favorites` page
+- View recipe details with ingredients, instructions, and media links (when available)
+- Fully responsive layout for mobile, tablet, and desktop
+- Lightweight animations with accessibility-friendly behavior
 
-🚀 Features
+## Tech Stack
+- Next.js 15 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Framer Motion
+- ESLint
 
-🔍 Search for meals & drinks by name
+## Data Sources
+- [TheMealDB](https://www.themealdb.com/)
+- [TheCocktailDB](https://www.thecocktaildb.com/)
 
-📖 View detailed recipe instructions and ingredients
-
-🎥 YouTube integration for cooking tutorials
-
-📱 Responsive design with Tailwind CSS
-
-🎨 Animated UI with Framer Motion
-
-🛠️ Tech Stack
-
-This project is built with:
-
-Next.js 15 – App Router, server & client components
-
-TypeScript – Type safety & better developer experience
-
-Tailwind CSS 4 – Utility-first styling
-
-Framer Motion – Animations & transitions
-
-TheMealDB API + TheCocktailDB API – Recipe data
-
-Vercel – Hosting & deployment
-
-ESLint + Prettier – Code linting and formatting
-
-📦 Development Setup
-
-Clone the repo and install dependencies:
-
-git clone <https://github.com/your-username/recipe-finder.git>
-cd recipe-finder
+## Getting Started
+1. Install dependencies:
+```bash
 npm install
+```
 
-Run development server:
-
+2. Start development server:
+```bash
 npm run dev
+```
 
-Build for production:
+3. Open the app:
+`http://localhost:3000`
 
-npm run build
+## Scripts
+- `npm run dev` - Run local development server
+- `npm run build` - Create production build
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+## Environment Variables
+The project currently works with public API endpoints and does not require secrets.
+
+If you want to keep local placeholders, create `.env.local` with:
+```bash
+NEXT_PUBLIC_MEALDB_API_KEY=1
+NEXT_PUBLIC_COCKTAILDB_API_KEY=1
+```
+
+## Deployment
+Recommended platform: Vercel.
+
+1. Push repository to GitHub
+2. Import the repo in Vercel
+3. Deploy
+
+## Project Structure
+```text
+src/
+  app/
+    page.tsx
+    favorites/page.tsx
+    recipe/[id]/page.tsx
+  components/
+  context/
+  lib/
+  styles/
+public/
+```
