@@ -127,6 +127,12 @@ const COFFEE_TEA_INGREDIENT_TERMS = Array.from(
   new Set([...TEA_INGREDIENT_TERMS, ...COFFEE_INGREDIENT_TERMS]),
 )
 
+const isCoffeeKeyword = (keyword: string): boolean =>
+  ['coffee', 'espresso', 'latte', 'cappuccino', 'mocha', 'americano', 'macchiato'].includes(keyword)
+
+const isTeaKeyword = (keyword: string): boolean =>
+  ['tea', 'chai', 'matcha', 'iced tea', 'herbal tea'].includes(keyword)
+
 const fetchCuratedDrinks = async (terms: string[], max = 24): Promise<Recipe[]> => {
   const requests = terms.map((term) =>
     getJsonSafely<DrinkSearchResponse>(
@@ -169,23 +175,7 @@ const isFruitDrinkKeyword = (keyword: string): boolean =>
 const isVegetableDrinkKeyword = (keyword: string): boolean =>
   ['vegetable drink', 'vegetable drinks', 'veggie drink', 'veggie drinks'].includes(keyword)
 const isCoffeeTeaKeyword = (keyword: string): boolean =>
-  [
-    'coffee',
-    'tea',
-    'coffee and tea',
-    'coffee & tea',
-    'tea and coffee',
-    'espresso',
-    'latte',
-    'cappuccino',
-    'mocha',
-    'americano',
-    'macchiato',
-    'chai',
-    'matcha',
-    'iced tea',
-    'herbal tea',
-  ].includes(keyword)
+  ['coffee and tea', 'coffee & tea', 'tea and coffee'].includes(keyword)
 
 const fetchByAreas = async (regions: string[]): Promise<Recipe[]> => {
   const areas = resolveAreas(regions)
@@ -306,6 +296,18 @@ export const fetchRecipes = async (
 
     if (isVegetableDrinkKeyword(normalizedKeyword)) {
       return await fetchCuratedDrinks(VEGETABLE_DRINK_TERMS)
+    }
+
+    if (isCoffeeKeyword(normalizedKeyword)) {
+      const byIngredients = await fetchDrinksByIngredients(COFFEE_INGREDIENT_TERMS)
+      if (byIngredients.length > 0) return byIngredients
+      return await fetchCuratedDrinks(COFFEE_DRINK_TERMS)
+    }
+
+    if (isTeaKeyword(normalizedKeyword)) {
+      const byIngredients = await fetchDrinksByIngredients(TEA_INGREDIENT_TERMS)
+      if (byIngredients.length > 0) return byIngredients
+      return await fetchCuratedDrinks(TEA_DRINK_TERMS)
     }
 
     if (isCoffeeTeaKeyword(normalizedKeyword)) {
