@@ -139,6 +139,18 @@ const fetchCuratedDrinks = async (terms: string[], max = 24): Promise<Recipe[]> 
   return uniqueById(drinks).slice(0, max)
 }
 
+const fetchMealsByCategory = async (category: string, max = 24): Promise<Recipe[]> => {
+  const data = await getJsonSafely<MealSearchResponse>(
+    `https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(category)}`,
+  )
+
+  const meals = Array.isArray(data?.meals) ? data.meals : []
+  // Ensure category is set for the returned items
+  return uniqueById(meals)
+    .slice(0, max)
+    .map((m) => ({ ...m, strCategory: m.strCategory || category }))
+}
+
 const fetchDrinksByIngredients = async (ingredients: string[], max = 24): Promise<Recipe[]> => {
   const requests = ingredients.map((ingredient) =>
     getJsonSafely<DrinkSearchResponse>(
@@ -281,6 +293,11 @@ export const fetchRecipes = async (
 
     if (isAnyDrinkKeyword(normalizedKeyword)) {
       return await fetchCuratedDrinks(BROAD_DRINK_TERMS)
+    }
+
+    if (['vegan', 'vegetarian'].includes(normalizedKeyword)) {
+      // TheMealDB does not always have a dedicated "Vegan" category, use "Vegetarian" as a close proxy
+      return await fetchMealsByCategory('Vegetarian')
     }
 
     if (isFruitDrinkKeyword(normalizedKeyword)) {
