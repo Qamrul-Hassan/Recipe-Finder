@@ -1,15 +1,17 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useFavorites } from '@/context/FavoritesContext'
 
 const quickTypes = [
   { label: 'Breakfast', query: 'breakfast' },
   { label: 'Pasta', query: 'pasta' },
   { label: 'Seafood', query: 'seafood' },
-  { label: 'Drinks', query: 'drink' },
+  { label: 'Drinks', query: 'drinks' },
+  { label: 'Coffee', query: 'coffee' },
+  { label: 'Tea', query: 'tea' },
   { label: 'Vegan', query: 'vegan' },
   { label: 'Dessert', query: 'dessert' },
   { label: 'Smoothie', query: 'smoothie' },
@@ -23,27 +25,89 @@ const cuisineRegions = [
 ]
 
 const countrySpotlights = [
-  { label: 'Indian', region: 'Indian' },
-  { label: 'Japanese', region: 'Japanese' },
-  { label: 'Thai', region: 'Thai' },
-  { label: 'Italian', region: 'Italian' },
+  { label: 'American', region: 'American' },
+  { label: 'British', region: 'British' },
+  { label: 'Chinese', region: 'Chinese' },
   { label: 'French', region: 'French' },
+  { label: 'Greek', region: 'Greek' },
+  { label: 'Indian', region: 'Indian' },
+  { label: 'Italian', region: 'Italian' },
+  { label: 'Japanese', region: 'Japanese' },
+  { label: 'Korean', region: 'Korean' },
+  { label: 'Lebanese', region: 'Lebanese' },
   { label: 'Mexican', region: 'Mexican' },
+  { label: 'Moroccan', region: 'Moroccan' },
+  { label: 'Pakistani', region: 'Pakistani' },
+  { label: 'Portuguese', region: 'Portuguese' },
+  { label: 'Spanish', region: 'Spanish' },
+  { label: 'Thai', region: 'Thai' },
   { label: 'Turkish', region: 'Turkish' },
+  { label: 'Vietnamese', region: 'Vietnamese' },
 ]
 
 type PanelKey = 'quick' | 'regions' | 'countries'
 
-export default function Navbar() {
+function NavbarContent() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { favorites } = useFavorites()
   const [activePanel, setActivePanel] = useState<PanelKey>('quick')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const isHome = pathname === '/'
   const isFavorites = pathname === '/favorites'
+  const selectedRegions = useMemo(
+    () =>
+      searchParams
+        .getAll('region')
+        .flatMap((value) => value.split(','))
+        .map((value) => value.trim().toLowerCase())
+        .filter(Boolean),
+    [searchParams],
+  )
+  const selectedRegionsKey = selectedRegions.join('|')
+  const queryValue = searchParams.get('q')?.trim() || ''
+  const selectedQuery = queryValue.toLowerCase()
+
+  useEffect(() => {
+    if (selectedRegions.length > 0) {
+      const isCountrySelection = selectedRegions.some((region) =>
+        countrySpotlights.some((country) => country.region.toLowerCase() === region),
+      )
+      const isGlobalRegionSelection = selectedRegions.some((region) =>
+        cuisineRegions.some((group) => group.region.toLowerCase() === region),
+      )
+
+      if (isCountrySelection) {
+        setActivePanel('countries')
+        return
+      }
+
+      if (isGlobalRegionSelection) {
+        setActivePanel('regions')
+        return
+      }
+
+      setActivePanel('regions')
+      return
+    }
+
+    if (queryValue) {
+      setActivePanel('quick')
+      return
+    }
+
+    if (!queryValue) {
+      setActivePanel('quick')
+    }
+  }, [selectedRegions, selectedRegionsKey, queryValue])
+
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
 
   return (
-    <header className="sticky top-0 z-50 px-4 pt-4 sm:px-6">
+    <header className="sticky top-0 z-50 px-4 pt-3 sm:px-6 sm:pt-4">
       <div className="glass-panel shell-gradient navbar-premium mx-auto w-full max-w-7xl rounded-3xl p-4 shadow-xl sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
@@ -87,10 +151,10 @@ export default function Navbar() {
               </svg>
             </div>
             <div>
-              <Link href="/" className="navbar-wordmark block text-2xl font-extrabold tracking-tight sm:text-3xl">
+              <Link href="/" className="navbar-wordmark block text-xl font-extrabold tracking-tight sm:text-3xl">
                 Recipe Finder
               </Link>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+              <p className="hidden text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)] sm:block">
                 Global recipes and crafted drinks
               </p>
             </div>
@@ -120,7 +184,26 @@ export default function Navbar() {
               </Link>
             </nav>
 
-            <div className="flex items-center gap-2" aria-label="Social links">
+            <button
+              type="button"
+              className="premium-icon-pill sm:hidden"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-navbar-menu"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+            >
+              {mobileMenuOpen ? (
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <path d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
+              )}
+            </button>
+
+            <div className={`${mobileMenuOpen ? 'flex' : 'hidden'} items-center gap-2 sm:flex`} aria-label="Social links">
               <a href="https://github.com/Qamrul-Hassan" target="_blank" rel="noopener noreferrer" className="premium-icon-pill" aria-label="GitHub" title="GitHub">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="M12 .7a11.3 11.3 0 0 0-3.6 22c.6.1.8-.2.8-.6v-2c-3.4.8-4.2-1.4-4.2-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.8.1-.8.1-.8 1.2.1 1.8 1.2 1.8 1.2 1 .1 2.1.9 2.6 1.8.6 0 1.1 0 1.5-.2.1-.7.4-1.3.8-1.6-2.7-.3-5.6-1.4-5.6-6.1 0-1.4.5-2.6 1.2-3.5 0-.3-.5-1.5.1-3.1 0 0 1-.3 3.6 1.2a12 12 0 0 1 6.5 0c2.5-1.5 3.6-1.2 3.6-1.2.6 1.6.1 2.8.1 3.1.8.9 1.2 2.1 1.2 3.5 0 4.8-2.9 5.8-5.6 6.1.5.4.9 1.2.9 2.4v3.5c0 .3.2.7.8.6A11.3 11.3 0 0 0 12 .7Z" /></svg>
               </a>
@@ -134,7 +217,11 @@ export default function Navbar() {
           </div>
         </div>
 
-        <section className="filter-workspace mt-4" aria-label="Discover filters">
+        <section
+          id="mobile-navbar-menu"
+          className={`${mobileMenuOpen ? 'block' : 'hidden'} filter-workspace mt-4 sm:block`}
+          aria-label="Discover filters"
+        >
           <div className="filter-tabs" role="tablist" aria-label="Filter groups">
             <button
               role="tab"
@@ -170,12 +257,22 @@ export default function Navbar() {
               <ul className="flex min-w-max items-center gap-2 pb-1 sm:gap-3">
                 {quickTypes.map((type) => (
                   <li key={type.query}>
-                    <Link
-                      href={`/?q=${encodeURIComponent(type.query)}`}
-                      className="navbar-chip inline-flex rounded-full border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]"
-                    >
-                      {type.label}
-                    </Link>
+                    {(() => {
+                      const isActive = selectedQuery === type.query.toLowerCase()
+                      return (
+                        <Link
+                          href={`/?q=${encodeURIComponent(type.query)}`}
+                          className={`navbar-chip inline-flex rounded-full border px-4 py-2 text-sm font-semibold ${
+                            isActive
+                              ? 'country-spotlight-chip-active'
+                              : 'border-[var(--surface-border)] bg-[var(--surface)] text-[var(--foreground)]'
+                          }`}
+                          aria-current={isActive ? 'page' : undefined}
+                        >
+                          {type.label}
+                        </Link>
+                      )
+                    })()}
                   </li>
                 ))}
               </ul>
@@ -185,27 +282,47 @@ export default function Navbar() {
               <ul className="flex min-w-max items-center gap-2 pb-1 sm:gap-3">
                 {cuisineRegions.map((item) => (
                   <li key={item.region}>
-                    <Link
-                      href={`/?region=${encodeURIComponent(item.region)}`}
-                      className="navbar-chip region-chip inline-flex rounded-full border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]"
-                    >
-                      {item.label}
-                    </Link>
+                    {(() => {
+                      const isActive = selectedRegions.includes(item.region.toLowerCase())
+                      return (
+                        <Link
+                          href={`/?region=${encodeURIComponent(item.region)}`}
+                          className={`navbar-chip region-chip inline-flex rounded-full border px-4 py-2 text-sm font-semibold ${
+                            isActive
+                              ? 'country-spotlight-chip-active'
+                              : 'border-[var(--surface-border)] bg-[var(--surface)] text-[var(--foreground)]'
+                          }`}
+                          aria-current={isActive ? 'page' : undefined}
+                        >
+                          {item.label}
+                        </Link>
+                      )
+                    })()}
                   </li>
                 ))}
               </ul>
             )}
 
             {activePanel === 'countries' && (
-              <ul className="flex min-w-max items-center gap-2 pb-1 sm:gap-3">
+              <ul className="flex flex-wrap items-center gap-2 pb-1 sm:gap-3">
                 {countrySpotlights.map((item) => (
                   <li key={item.region}>
-                    <Link
-                      href={`/?region=${encodeURIComponent(item.region)}`}
-                      className="navbar-chip inline-flex rounded-full border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]"
-                    >
-                      {item.label}
-                    </Link>
+                    {(() => {
+                      const isActive = selectedRegions.includes(item.region.toLowerCase())
+                      return (
+                        <Link
+                          href={`/?region=${encodeURIComponent(item.region)}`}
+                          className={`navbar-chip country-spotlight-chip inline-flex rounded-full border px-4 py-2 text-sm font-semibold ${
+                            isActive
+                              ? 'country-spotlight-chip-active'
+                              : 'border-[var(--surface-border)] bg-[var(--surface)] text-[var(--foreground)]'
+                          }`}
+                          aria-current={isActive ? 'page' : undefined}
+                        >
+                          {item.label}
+                        </Link>
+                      )
+                    })()}
                   </li>
                 ))}
               </ul>
@@ -214,5 +331,25 @@ export default function Navbar() {
         </section>
       </div>
     </header>
+  )
+}
+
+function NavbarFallback() {
+  return (
+    <header className="sticky top-0 z-50 px-4 pt-3 sm:px-6 sm:pt-4">
+      <div className="glass-panel shell-gradient navbar-premium mx-auto w-full max-w-7xl rounded-3xl p-4 shadow-xl sm:p-5">
+        <Link href="/" className="navbar-wordmark block text-xl font-extrabold tracking-tight sm:text-3xl">
+          Recipe Finder
+        </Link>
+      </div>
+    </header>
+  )
+}
+
+export default function Navbar() {
+  return (
+    <Suspense fallback={<NavbarFallback />}>
+      <NavbarContent />
+    </Suspense>
   )
 }

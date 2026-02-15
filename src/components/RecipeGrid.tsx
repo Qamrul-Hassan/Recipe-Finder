@@ -27,6 +27,8 @@ const RecipeGrid = ({ recipes, allowRemove = false }: RecipeGridProps) => {
           const imgSrc = getRecipeImage(recipe)
           const category = getRecipeCategory(recipe)
           const favorite = isFavorite(id)
+          const isPopular = (recipe.strTags || '').toLowerCase().includes('popular')
+          const isLocalCatalogCard = imgSrc === '/local-food-placeholder.svg'
 
           return (
             <motion.li
@@ -75,13 +77,27 @@ const RecipeGrid = ({ recipes, allowRemove = false }: RecipeGridProps) => {
 
               <Link href={`/recipe/${id}`} className="block">
                 <div className="relative h-48 w-full overflow-hidden rounded-2xl">
-                  <Image
-                    src={imgSrc}
-                    alt={title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
-                  />
+                  {isLocalCatalogCard ? (
+                    <div className="flex h-full w-full flex-col justify-end bg-gradient-to-br from-[#eef6db] to-[#dceeba] p-4">
+                      <p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted)]">
+                        {recipe.strArea || 'Local'}
+                      </p>
+                      <p className="mt-1 text-base font-extrabold text-[var(--foreground)]">{title}</p>
+                    </div>
+                  ) : (
+                    <Image
+                      src={imgSrc}
+                      alt={title}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
+                    />
+                  )}
+                  {isPopular && (
+                    <span className="absolute left-3 top-3 rounded-full border border-[var(--surface-border)] bg-[var(--surface-strong)] px-3 py-1 text-xs font-extrabold text-[var(--foreground)] shadow-sm">
+                      Popular
+                    </span>
+                  )}
                 </div>
                 <div className="px-1 pb-1 pt-4">
                   <h2 className="text-lg font-extrabold text-[var(--primary)]">{title}</h2>

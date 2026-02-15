@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
 import { Recipe } from '@/lib/api'
+import { recordRecipeView } from '@/lib/insights'
 import { useFavorites } from '@/context/FavoritesContext'
 import { getRecipeId } from '@/lib/recipe'
 
@@ -25,6 +26,16 @@ export default function RecipeDetails({ id }: RecipeDetailsProps) {
       setLoading(true)
 
       try {
+        if (id.startsWith('spoon-')) {
+          const spoonId = id.replace(/^spoon-/, '')
+          const spoonResponse = await fetch(`/api/spoonacular/recipe/${encodeURIComponent(spoonId)}`)
+          if (spoonResponse.ok) {
+            const spoonData = (await spoonResponse.json()) as { recipe?: Recipe | null }
+            setRecipe(spoonData.recipe || null)
+            return
+          }
+        }
+
         const [mealResult, drinkResult] = await Promise.allSettled([
           fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`),
           fetch(`https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=${id}`),
@@ -46,6 +57,11 @@ export default function RecipeDetails({ id }: RecipeDetailsProps) {
 
     fetchRecipe()
   }, [id])
+
+  useEffect(() => {
+    if (!recipe) return
+    void recordRecipeView(recipe)
+  }, [recipe])
 
   const detailMotion = reduceMotion
     ? {}
@@ -105,7 +121,7 @@ export default function RecipeDetails({ id }: RecipeDetailsProps) {
         className="relative mb-6 h-72 w-full overflow-hidden rounded-2xl shadow-lg sm:h-96"
       >
         <Image
-          src={recipe.strMealThumb || recipe.strDrinkThumb || '/fallback.png'}
+          src={recipe.strMealThumb || recipe.strDrinkThumb || '/local-food-placeholder.svg'}
           alt={recipe.strMeal || recipe.strDrink || 'Recipe image'}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1200px) 90vw, 1024px"

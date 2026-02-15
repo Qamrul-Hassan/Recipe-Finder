@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { Hero } from '@/components/Hero'
 import RecipeGrid from '@/components/RecipeGrid'
 import { fetchRecipes, Recipe } from '@/lib/api'
+import { getMostlyCheckedRecipes } from '@/lib/insights'
 
 function HomeContent() {
   const searchParams = useSearchParams()
@@ -22,6 +23,7 @@ function HomeContent() {
   const hasSelectedRegions = selectedRegions.length > 0
   const [query, setQuery] = useState<string>('')
   const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [mostlyCheckedRecipes, setMostlyCheckedRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
@@ -31,6 +33,21 @@ function HomeContent() {
     }
     setQuery('')
   }, [selectedQuery])
+
+  useEffect(() => {
+    let isStale = false
+
+    const loadMostlyChecked = async () => {
+      const data = await getMostlyCheckedRecipes(8)
+      if (!isStale) setMostlyCheckedRecipes(data)
+    }
+
+    loadMostlyChecked()
+
+    return () => {
+      isStale = true
+    }
+  }, [])
 
   useEffect(() => {
     const trimmedQuery = query.trim()
@@ -102,6 +119,18 @@ function HomeContent() {
   return (
     <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8">
       <Hero query={query} setQuery={setQuery} />
+
+      {mostlyCheckedRecipes.length > 0 && (
+        <section className="mb-8">
+          <div className="card mb-4">
+            <h2 className="text-2xl font-extrabold text-[var(--foreground)] sm:text-3xl">Mostly Checked Recipes</h2>
+            <p className="mt-2 text-sm font-semibold text-[var(--muted)] sm:text-base">
+              Based on recipes opened most often by all users.
+            </p>
+          </div>
+          <RecipeGrid recipes={mostlyCheckedRecipes} />
+        </section>
+      )}
 
       {loading && recipes.length === 0 && (
         <p className="text-center text-[var(--muted)] mt-6 font-semibold">Loading recipes...</p>

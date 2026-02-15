@@ -1,4 +1,5 @@
 // src/lib/api.ts
+
 export interface Recipe {
   idMeal?: string
   idDrink?: string
@@ -25,10 +26,39 @@ interface DrinkSearchResponse {
   drinks?: Recipe[]
 }
 
+interface InternalRecipesResponse {
+  recipes?: Recipe[]
+}
+
 const REGION_TO_AREAS: Record<string, string[]> = {
   asian: ['Chinese', 'Indian', 'Japanese', 'Thai', 'Vietnamese', 'Malaysian', 'Filipino'],
   middle_eastern: ['Turkish', 'Moroccan', 'Egyptian', 'Tunisian'],
   western: ['American', 'British', 'French', 'Italian', 'Spanish', 'Canadian', 'Portuguese'],
+}
+
+const COUNTRY_POPULAR_TERMS: Record<string, string[]> = {
+  american: ['burger', 'bbq', 'steak'],
+  british: ['pie', 'fish', 'pudding'],
+  spanish: ['paella', 'tortilla', 'chorizo'],
+  indian: ['biryani', 'curry', 'masala'],
+  japanese: ['sushi', 'ramen', 'teriyaki'],
+  thai: ['pad thai', 'green curry', 'tom yum'],
+  italian: ['pasta', 'risotto', 'pizza'],
+  french: ['ratatouille', 'beef bourguignon', 'crepe'],
+  mexican: ['taco', 'enchilada', 'quesadilla'],
+  chinese: ['noodle', 'dumpling', 'sweet and sour'],
+  korean: ['kimchi', 'bulgogi', 'bibimbap'],
+  vietnamese: ['pho', 'spring roll', 'banh mi'],
+  greek: ['moussaka', 'souvlaki', 'salad'],
+  lebanese: ['shawarma', 'hummus', 'kebab'],
+  moroccan: ['tagine', 'couscous', 'harira'],
+  brazilian: ['feijoada', 'picanha', 'moqueca'],
+  portuguese: ['bacalhau', 'caldo verde', 'piri piri'],
+  turkish: ['kebab', 'kofta', 'pilaf'],
+  bangladeshi: ['hilsa', 'ilish', 'khichuri', 'bhuna', 'korma', 'pulao', 'kacchi', 'fuchka', 'chotpoti'],
+  bangladesh: ['hilsa', 'ilish', 'khichuri', 'bhuna', 'korma', 'pulao', 'kacchi', 'fuchka', 'chotpoti'],
+  pakistani: ['nihari', 'karahi', 'biryani'],
+  pakistan: ['nihari', 'karahi', 'biryani'],
 }
 
 const getJsonSafely = async <T>(url: string): Promise<T | null> => {
@@ -64,19 +94,152 @@ const resolveAreas = (regions: string[]): string[] => {
   return Array.from(areas)
 }
 
-const fetchByAreas = async (regions: string[]): Promise<Recipe[]> => {
-  const areas = resolveAreas(regions)
-  if (areas.length === 0) return []
+const FRUIT_DRINK_TERMS = [
+  'smoothie',
+  'juice',
+  'lemonade',
+  'orange',
+  'pineapple',
+  'mango',
+  'berry',
+  'banana',
+  'apple',
+]
 
-  const requests = areas.map((area) =>
-    getJsonSafely<MealSearchResponse>(
-      `https://www.themealdb.com/api/json/v1/1/filter.php?a=${encodeURIComponent(area)}`,
+const VEGETABLE_DRINK_TERMS = [
+  'vegetable',
+  'tomato',
+  'carrot',
+  'celery',
+  'cucumber',
+  'beet',
+  'green',
+]
+
+const ALL_DRINK_TERMS = Array.from(new Set([...FRUIT_DRINK_TERMS, ...VEGETABLE_DRINK_TERMS]))
+const TEA_DRINK_TERMS = ['tea', 'iced tea', 'chai', 'matcha', 'herbal tea']
+const BROAD_DRINK_TERMS = Array.from(new Set([...ALL_DRINK_TERMS, ...TEA_DRINK_TERMS]))
+const COFFEE_DRINK_TERMS = ['coffee', 'espresso', 'latte', 'cappuccino', 'mocha', 'americano', 'macchiato']
+const COFFEE_TEA_DRINK_TERMS = Array.from(new Set([...COFFEE_DRINK_TERMS, ...TEA_DRINK_TERMS]))
+const TEA_INGREDIENT_TERMS = ['tea', 'tea bag']
+const COFFEE_INGREDIENT_TERMS = ['coffee', 'espresso', 'coffee liqueur']
+const COFFEE_TEA_INGREDIENT_TERMS = Array.from(
+  new Set([...TEA_INGREDIENT_TERMS, ...COFFEE_INGREDIENT_TERMS]),
+)
+
+const fetchCuratedDrinks = async (terms: string[], max = 24): Promise<Recipe[]> => {
+  const requests = terms.map((term) =>
+    getJsonSafely<DrinkSearchResponse>(
+      `https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${encodeURIComponent(term)}`,
     ),
   )
 
   const results = await Promise.all(requests)
-  const meals = results.flatMap((data) => (Array.isArray(data?.meals) ? data.meals : []))
-  return uniqueById(meals).slice(0, 36)
+  const drinks = results.flatMap((data) => (Array.isArray(data?.drinks) ? data.drinks : []))
+  return uniqueById(drinks).slice(0, max)
+}
+
+const fetchDrinksByIngredients = async (ingredients: string[], max = 24): Promise<Recipe[]> => {
+  const requests = ingredients.map((ingredient) =>
+    getJsonSafely<DrinkSearchResponse>(
+      `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(ingredient)}`,
+    ),
+  )
+
+  const results = await Promise.all(requests)
+  const drinks = results.flatMap((data) => (Array.isArray(data?.drinks) ? data.drinks : []))
+  return uniqueById(drinks).slice(0, max)
+}
+
+const isAnyDrinkKeyword = (keyword: string): boolean => ['drink', 'drinks'].includes(keyword)
+const isFruitDrinkKeyword = (keyword: string): boolean =>
+  ['fruit drink', 'fruit drinks', 'fruity drink', 'fruity drinks'].includes(keyword)
+const isVegetableDrinkKeyword = (keyword: string): boolean =>
+  ['vegetable drink', 'vegetable drinks', 'veggie drink', 'veggie drinks'].includes(keyword)
+const isCoffeeTeaKeyword = (keyword: string): boolean =>
+  [
+    'coffee',
+    'tea',
+    'coffee and tea',
+    'coffee & tea',
+    'tea and coffee',
+    'espresso',
+    'latte',
+    'cappuccino',
+    'mocha',
+    'americano',
+    'macchiato',
+    'chai',
+    'matcha',
+    'iced tea',
+    'herbal tea',
+  ].includes(keyword)
+
+const fetchByAreas = async (regions: string[]): Promise<Recipe[]> => {
+  const areas = resolveAreas(regions)
+  const normalizedRegions = regions.map((region) => region.toLowerCase())
+
+  const areaRequests =
+    areas.length > 0
+      ? areas.map((area) =>
+          getJsonSafely<MealSearchResponse>(
+            `https://www.themealdb.com/api/json/v1/1/filter.php?a=${encodeURIComponent(area)}`,
+          ),
+        )
+      : []
+
+  const searchTerms = Array.from(new Set(normalizedRegions.flatMap((region) => COUNTRY_POPULAR_TERMS[region] ?? [])))
+
+  const searchRequests =
+    searchTerms.length > 0
+      ? searchTerms.map((term) =>
+          getJsonSafely<MealSearchResponse>(
+            `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(term)}`,
+          ),
+        )
+      : []
+
+  const [areaResults, searchResults] = await Promise.all([
+    Promise.all(areaRequests),
+    Promise.all(searchRequests),
+  ])
+
+  const areaMeals = areaResults.flatMap((data) => (Array.isArray(data?.meals) ? data.meals : []))
+  const searchedMeals = searchResults.flatMap((data) => (Array.isArray(data?.meals) ? data.meals : []))
+  const rankedSearchedMeals =
+    searchTerms.length > 0
+      ? (() => {
+          const termSet = searchTerms.map((term) => term.toLowerCase())
+          const scoreRecipeByTerms = (recipe: Recipe): number => {
+            const title = (recipe.strMeal || '').toLowerCase()
+            const category = (recipe.strCategory || '').toLowerCase()
+            const instructions = (recipe.strInstructions || '').toLowerCase()
+            const area = (recipe.strArea || '').toLowerCase()
+            const joined = `${title} ${category} ${instructions} ${area}`
+
+            return termSet.reduce((score, term) => (joined.includes(term) ? score + 1 : score), 0)
+          }
+
+          return searchedMeals
+            .map((meal) => ({ meal, score: scoreRecipeByTerms(meal) }))
+            .filter((item) => item.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .map((item) => item.meal)
+        })()
+      : searchedMeals
+  const baseResults = uniqueById([...areaMeals, ...rankedSearchedMeals]).slice(0, 36)
+
+  const spoonacularRequests = regions.map((region) =>
+    getJsonSafely<InternalRecipesResponse>(
+      `/api/spoonacular/country?country=${encodeURIComponent(region)}&limit=18`,
+    ),
+  )
+  const spoonacularResults = await Promise.all(spoonacularRequests)
+  const spoonacularMeals = spoonacularResults.flatMap((data) =>
+    Array.isArray(data?.recipes) ? data.recipes : [],
+  )
+
+  return uniqueById([...baseResults, ...spoonacularMeals]).slice(0, 36)
 }
 
 export const fetchRecipes = async (
@@ -85,13 +248,14 @@ export const fetchRecipes = async (
 ): Promise<Recipe[]> => {
   try {
     const keyword = (keywords?.[0] || '').trim()
+    const normalizedKeyword = keyword.toLowerCase()
     const regions = options.regions?.filter(Boolean) || []
 
     if (!keyword && regions.length > 0) {
       const regionalRecipes = await fetchByAreas(regions)
       if (regionalRecipes.length > 0) return regionalRecipes
-      // Fallback keeps the homepage usable when area endpoints are unavailable.
-      return await fetchRecipes([''])
+      // Explicitly return empty when country/region has no upstream data.
+      return []
     }
 
     if (!keyword) {
@@ -113,6 +277,24 @@ export const fetchRecipes = async (
       const meals = mealResults.flatMap((data) => (Array.isArray(data?.meals) ? data.meals : []))
       const drinks = drinkResults.flatMap((data) => (Array.isArray(data?.drinks) ? data.drinks : []))
       return uniqueById([...meals, ...drinks]).slice(0, 24)
+    }
+
+    if (isAnyDrinkKeyword(normalizedKeyword)) {
+      return await fetchCuratedDrinks(BROAD_DRINK_TERMS)
+    }
+
+    if (isFruitDrinkKeyword(normalizedKeyword)) {
+      return await fetchCuratedDrinks(FRUIT_DRINK_TERMS)
+    }
+
+    if (isVegetableDrinkKeyword(normalizedKeyword)) {
+      return await fetchCuratedDrinks(VEGETABLE_DRINK_TERMS)
+    }
+
+    if (isCoffeeTeaKeyword(normalizedKeyword)) {
+      const byIngredients = await fetchDrinksByIngredients(COFFEE_TEA_INGREDIENT_TERMS)
+      if (byIngredients.length > 0) return byIngredients
+      return await fetchCuratedDrinks(COFFEE_TEA_DRINK_TERMS)
     }
 
     const [mealData, drinkData] = await Promise.all([

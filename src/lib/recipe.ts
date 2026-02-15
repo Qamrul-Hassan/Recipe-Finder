@@ -12,7 +12,8 @@ export const getRecipeId = (recipe: Recipe): string => recipe.idMeal || recipe.i
 
 export const getRecipeTitle = (recipe: Recipe): string => recipe.strMeal || recipe.strDrink || 'Untitled'
 
-export const getRecipeImage = (recipe: Recipe): string => recipe.strMealThumb || recipe.strDrinkThumb || '/fallback.png'
+export const getRecipeImage = (recipe: Recipe): string =>
+  recipe.strMealThumb || recipe.strDrinkThumb || '/local-food-placeholder.svg'
 
 export const getRecipeCategory = (recipe: Recipe): string =>
   recipe.strCategory || (recipe.idDrink ? 'Drink' : 'Meal')
