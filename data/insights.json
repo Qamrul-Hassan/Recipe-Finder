@@ -1,6 +1,15 @@
 {
   "items": [
     {
+      "id": "53239",
+      "title": "Bang bang prawn salad",
+      "image": "https://www.themealdb.com/images/media/meals/4xcfai1763765676.jpg",
+      "category": "Seafood",
+      "kind": "meal",
+      "views": 5,
+      "lastViewedAt": 1771186195075
+    },
+    {
       "id": "53376",
       "title": "Sweet and Sour Chicken",
       "image": "https://www.themealdb.com/images/media/meals/arzs741766434335.jpg",
@@ -8,15 +17,6 @@
       "kind": "meal",
       "views": 1,
       "lastViewedAt": 1771184381308
-    },
-    {
-      "id": "53239",
-      "title": "Bang bang prawn salad",
-      "image": "https://www.themealdb.com/images/media/meals/4xcfai1763765676.jpg",
-      "category": "Seafood",
-      "kind": "meal",
-      "views": 4,
-      "lastViewedAt": 1771183996041
     }
   ]
 }
